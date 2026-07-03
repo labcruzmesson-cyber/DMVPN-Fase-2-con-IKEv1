@@ -1,0 +1,161 @@
+PEER A
+configure terminal
+interface GigabitEthernet0/0
+ ip address 10.0.0.60 255.255.255.0
+ ip nat outside
+ compression iphc
+ no shutdown
+!
+interface GigabitEthernet0/1
+ ip address 172.16.1.1 255.255.255.0
+ ip nat inside
+ no shutdown
+!
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+!
+ip access-list extended ACL_NAT_INTERNET
+ permit ip 172.16.1.0 0.0.0.255 any
+exit
+ip nat inside source list ACL_NAT_INTERNET interface GigabitEthernet0/0 overload
+!
+crypto isakmp policy 10
+ encr aes
+ hash sha
+ authentication pre-share
+ group 2
+exit
+crypto isakmp key DMVPN_KEY address 0.0.0.0
+!
+crypto ipsec transform-set TS_DMVPN esp-aes esp-sha-hmac
+ mode transport
+exit
+!
+crypto ipsec profile PROF_DMVPN
+ set transform-set TS_DMVPN
+exit
+!
+interface Tunnel0
+ ip address 192.168.100.1 255.255.255.0
+ no ip split-horizon eigrp 1
+ no ip next-hop-self eigrp 1
+ ip nhrp network-id 1
+ ip nhrp map multicast dynamic
+ tunnel source GigabitEthernet0/0
+ tunnel mode gre multipoint
+ tunnel protection ipsec profile PROF_DMVPN
+ no shutdown
+exit
+!
+router eigrp 1
+ network 192.168.100.0 0.0.0.255
+ network 172.16.1.0 0.0.0.255
+exit
+
+
+
+
+PEER B
+configure terminal
+interface GigabitEthernet0/0
+ ip address 10.0.0.70 255.255.255.0
+ ip nat outside
+ no shutdown
+!
+interface GigabitEthernet0/1
+ ip address 172.16.2.1 255.255.255.0
+ ip nat inside
+ no shutdown
+!
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+!
+ip access-list extended ACL_NAT_INTERNET
+ permit ip 172.16.2.0 0.0.0.255 any
+exit
+ip nat inside source list ACL_NAT_INTERNET interface GigabitEthernet0/0 overload
+!
+crypto isakmp policy 10
+ encr aes
+ hash sha
+ authentication pre-share
+ group 2
+exit
+crypto isakmp key DMVPN_KEY address 0.0.0.0
+!
+crypto ipsec transform-set TS_DMVPN esp-aes esp-sha-hmac
+ mode transport
+exit
+!
+crypto ipsec profile PROF_DMVPN
+ set transform-set TS_DMVPN
+exit
+!
+interface Tunnel0
+ ip address 192.168.100.2 255.255.255.0
+ ip nhrp network-id 1
+ ip nhrp nhs 192.168.100.1
+ ip nhrp map 192.168.100.1 10.0.0.60
+ ip nhrp map multicast 10.0.0.60
+ tunnel source GigabitEthernet0/0
+ tunnel mode gre multipoint
+ tunnel protection ipsec profile PROF_DMVPN
+ no shutdown
+exit
+!
+router eigrp 1
+ network 192.168.100.0 0.0.0.255
+ network 172.16.2.0 0.0.0.255
+exit
+
+
+
+PEER C
+configure terminal
+interface GigabitEthernet0/0
+ ip address 10.0.0.80 255.255.255.0
+ ip nat outside
+ no shutdown
+!
+interface GigabitEthernet0/1
+ ip address 172.16.3.1 255.255.255.0
+ ip nat inside
+ no shutdown
+!
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+!
+ip access-list extended ACL_NAT_INTERNET
+ permit ip 172.16.3.0 0.0.0.255 any
+exit
+ip nat inside source list ACL_NAT_INTERNET interface GigabitEthernet0/0 overload
+!
+crypto isakmp policy 10
+ encr aes
+ hash sha
+ authentication pre-share
+ group 2
+exit
+crypto isakmp key DMVPN_KEY address 0.0.0.0
+!
+crypto ipsec transform-set TS_DMVPN esp-aes esp-sha-hmac
+ mode transport
+exit
+!
+crypto ipsec profile PROF_DMVPN
+ set transform-set TS_DMVPN
+exit
+!
+interface Tunnel0
+ ip address 192.168.100.3 255.255.255.0
+ ip nhrp network-id 1
+ ip nhrp nhs 192.168.100.1
+ ip nhrp map 192.168.100.1 10.0.0.60
+ ip nhrp map multicast 10.0.0.60
+ tunnel source GigabitEthernet0/0
+ tunnel mode gre multipoint
+ tunnel protection ipsec profile PROF_DMVPN
+ no shutdown
+exit
+!
+router eigrp 1
+ network 192.168.100.0 0.0.0.255
+ network 172.16.3.0 0.0.0.255
+exit
